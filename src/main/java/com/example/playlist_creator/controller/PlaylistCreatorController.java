@@ -2,6 +2,8 @@ package com.example.playlist_creator.controller;
 
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
@@ -29,6 +31,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/playlist")
 public class PlaylistCreatorController {
+    private static final Logger logger = LoggerFactory.getLogger(PlaylistCreatorController.class);
 
     // Método para extrair o ID do vídeo
     private String extractVideoId(String url) {
@@ -93,6 +96,7 @@ public class PlaylistCreatorController {
             return "redirect:/"; // Exemplo de redirecionamento para o formulário de criação
         } catch (GeneralSecurityException | IOException e) {
             model.addAttribute("mensagem", "Erro ao processar o callback: " + e.getMessage());
+            logger.error("Erro ao processar o callback: " + e.getMessage());
             return "error"; // Redireciona para a página de erro
         }
     }
@@ -110,9 +114,11 @@ public class PlaylistCreatorController {
         try {
             youtubeService = YouTubeAuthenticator.authenticateYouTube(request, response);
             if (youtubeService == null) {
+                logger.error("Erro de autenticação.");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Erro de autenticação.");
             }
         } catch (GeneralSecurityException | IOException e) {
+            logger.error("Erro ao autenticar: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Erro ao autenticar: " + e.getMessage());
         }
@@ -127,6 +133,7 @@ public class PlaylistCreatorController {
                 }
             }
         } catch (IOException e) {
+            logger.error("Erro ao ler o arquivo: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Erro ao ler o arquivo: " + e.getMessage());
         }
 
@@ -142,6 +149,7 @@ public class PlaylistCreatorController {
             return ResponseEntity
                     .ok("Playlist criada com sucesso: " + nomePlaylist + ". Acesse sua playlist aqui: " + playlistLink);
         } catch (IOException e) {
+            logger.error("Erro ao criar a playlist: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Erro ao criar a playlist: " + e.getMessage());
         }
