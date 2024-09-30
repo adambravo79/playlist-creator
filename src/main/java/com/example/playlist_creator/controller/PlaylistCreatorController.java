@@ -109,6 +109,7 @@ public class PlaylistCreatorController {
 
         List<String> videoIds = new ArrayList<>();
         YouTube youtubeService;
+        String messageQuota = "";
 
         // Autentica o YouTube
         try {
@@ -149,9 +150,15 @@ public class PlaylistCreatorController {
             return ResponseEntity
                     .ok("Playlist criada com sucesso: " + nomePlaylist + ". Acesse sua playlist aqui: " + playlistLink);
         } catch (IOException e) {
-            logger.error("Erro ao criar a playlist: " + e.getMessage());
+            logger.error("Erro ao criar a playlist: >" + e.getLocalizedMessage());
+            if (e.getMessage().contains("403 Forbidden")) {
+                messageQuota = "Você excedeu a cota da API do YouTube ";
+            } else
+                messageQuota = e.getLocalizedMessage();
+
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Erro ao criar a playlist: " + e.getMessage());
+                    .body("Erro ao criar a playlist: " + messageQuota);
+            // .body("Erro ao criar a playlist: " + e.getMessage());
         }
     }
 }
